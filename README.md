@@ -43,14 +43,19 @@ print(logits)
 
 ## To Do list
 - [x] Make To Do list (we are now officially more organized than Character.AI devs)
-- [ ] Find ways, modify architecture if necessary, to reduce memory usage
-- [ ] Redo config system to require less hardcoding and more flexibility (Many PCs have too little disk space to fully load The Pile, needs a way to specify subset of data (this also allows for other datasets to be used))
 - [ ] Add inference only if someone wants to open-source LaMDA model weights
+- [ ] Make ZeRO work
 - [ ] Add finetuning script
-- [ ] Add Sentencepiece tokenizer training script and integration
-- [ ] Experiment with [quantization](https://pytorch.org/docs/stable/quantization.html), to reduce required memory? (Update: CPU only for now.)
+- [x] Add Sentencepiece tokenizer training script and integration
+- [ ] Find ways, modify architecture if necessary, to reduce memory usage
+	- [ ] Experiment with [quantization](https://pytorch.org/docs/stable/quantization.html), to reduce required memory? (Update: CPU only for now.)
+	- [ ] Vocabulary size results in big embedding = more required memory and inference time. Experiment with embedding.
 - [ ] Experiment with improvements to the model:
 	- [ ] Try to see if [Mixture of Denoisers](https://arxiv.org/abs/2205.05131) can be added to the model/training process
+	- [ ] Parametrized GEGLU or perhaps other activation functions
+- [ ] Redo config system to require less hardcoding and more flexibility (Many PCs have too little disk space to fully load The Pile, need to get dataset streaming somehow working with this whole process) (put this on hold for now)
+	- [ ] Switch to .yaml based config system (maybe?)
+	- [ ] Attempt to have it to where data can be streamed in instead of having to download the entire dataset at once.
 - [ ] ???
 - [ ] Our wAIfus are real again!
 

@@ -1,25 +1,29 @@
 import copy
 from itertools import chain
-from datasets import load_dataset
-from torch.utils.data import DataLoader, DistributedSampler
+from typing import Union
+
+from datasets import Dataset, load_dataset
+from sentencepiece import SentencePieceProcessor
 from torch.distributed import get_world_size
-from .config.config import CFG
+from torch.utils.data import DataLoader, DistributedSampler
 from transformers import AutoTokenizer, default_data_collator
 
+from .config.config import CFG
 
-def build_dataloaders(args: CFG, tokenizer: AutoTokenizer):
+
+def build_dataloaders(args: CFG, tokenizer: Union[AutoTokenizer, SentencePieceProcessor]):
     """
     Build dataloaders for the model.
     """
 
     # Load training dataset
-    load_train_data = load_dataset(args.train_dataset_path, name = args.train_dataset_name, split = args.choose_train_split)
+    load_train_data = load_dataset(args.train_dataset_path, name = args.train_dataset_name, split = args.choose_train_split, streaming = args.stream_data)
 
     # Remove unused columns from the training dataset
     load_train_data = load_train_data.remove_columns(args.remove_train_columns)
 
     # Load validation dataset
-    load_eval_data = load_dataset(args.eval_dataset_path, name = args.eval_dataset_name, split = args.choose_eval_split)
+    load_eval_data = load_dataset(args.eval_dataset_path, name = args.eval_dataset_name, split = args.choose_eval_split, streaming = args.stream_data)
 
     # Remove unused columns from the validation dataset
     load_eval_data = load_eval_data.remove_columns(args.remove_eval_columns)
@@ -41,9 +45,22 @@ def build_dataloaders(args: CFG, tokenizer: AutoTokenizer):
 
     def tokenize(examples):
         seq_length = args.tokenizer_seq_length
-        examples = tokenizer(examples[args.select_input_string])
+        #print(f"examples type: {type(examples)}")
+        
+        #sentencepiece method of encoding with SentencePieceProcessor
+        #TODO: Experiment with sampling to see if that does something.
+        if isinstance(tokenizer, SentencePieceProcessor):
+            #Directly specify that this is indeed input_ids, since it's not done automatically through HuggingFace wizard shit
+            examples["input_ids"] = tokenizer.encode_as_ids(examples[args.select_input_string])
+            #Delete input key to avoid that getting put into the dataloader
+            del examples[args.select_input_string]
+        #huggingface method of encoding with AutoTokenizer
+        else:
+            examples = tokenizer(examples[args.select_input_string])
+            
         concatenated_examples = {k: list(chain(*examples[k])) for k in examples.keys()}
         total_length = len(concatenated_examples[list(examples.keys())[0]])
+            
         if total_length >= seq_length:
             total_length = (total_length // seq_length) * seq_length
 

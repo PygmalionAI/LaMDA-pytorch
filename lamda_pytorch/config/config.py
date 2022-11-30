@@ -139,7 +139,26 @@ class CFG:
         metadata = {'help': 'Whether to use Weights and Biases for logging'}
     )
 
-    project_name: Optional[str] = field(
-        default="LaMDA pre-training",
+    project_name: str = field(
+        default="lamda-enron-trainingtest",
         metadata = {'help': 'Name of the project'}
+    )
+    
+    run_name: str = field(
+        default="default-run",
+        metadata = {'help': 'Name of the current run (please change before use)'}
+    )
+    
+    """
+    Configuration for training
+    """
+    
+    save_model: bool = field(
+        default = False,
+        metadata = {'help': 'Save model during training'}
+    )
+    
+    save_every_n_epoches: int = field(
+        default = 1,
+        metadata = {'help': 'If save_model is enabled, saves the model to a checkpoint after this many epoches since the last save'}
     )
